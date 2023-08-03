@@ -10,7 +10,7 @@ const entries = [
     { category: 'Gaming', content: 'Skyrim is for the Nords!'}
 ]
 
-mongoose.connect('mongodb+srv://flip242:Vacation1@cluster0.bzqanvn.mongodb.net/journal?retryWrites=true&w=majority')
+mongoose.connect('mongodb+srv://flip242:<Password>@cluster0.bzqanvn.mongodb.net/journal?retryWrites=true&w=majority')
     .then(m => console.log(m.connection.readyState === 1 ? 'Mongoose Connected!' : 'Mongoose Failed to connect'))
     .catch(err => console.error(err))
 
