@@ -20,20 +20,37 @@ mongoose.connect('mongodb+srv://flip242:<pw>@cluster0.bzqanvn.mongodb.net/journa
     .catch(err => console.error(err))
 
 const entrySchema = new mongoose.Schema({
-    category: {type: String, required: true},
-    content: {type: String, required: true}
+    category: { type: mongoose.ObjectId, ref: 'Category' },
+    content: { type: String, required: true }
 })
 
 const EntryModel = mongoose.model('Entry', entrySchema)
 
 const categorySchema = new mongoose.Schema({
-    name: { type: String, required: true }
+    name: { type: String, required: true },
+    entries: [entrySchema]
 })
 
 const CategoryModel = mongoose.model('Category', categorySchema)
 
+// CategoryModel.create({
+//     name: 'Foo',
+//     entries: [
+//         { content: 'Bar' },
+//         { content: 'Bat' },
+//     ]
+// })
+
+// async function addEntry() {
+//     const theCat = await CategoryModel.findOne({ name: 'Coding' })
+//     EntryModel.create({ content: 'Testing category ref', category: theCat._id })
+// }
+// addEntry()
+
+
+
 const app = express()
-const port = 5501
+const port = 5502
 
 app.use(express.json())
 
@@ -59,8 +76,13 @@ app.get('/entries/:id', async (req, res) => {
 
 app.post('/entries', async (req, res) => {
     try{
-        const insertedEntry = await EntryModel.create(req.body)
-        res.status(201).send(insertedEntry)
+        const theCat = await CategoryModel.findOne({ name: req.body.category })
+        if(theCat) {
+            const insertedEntry = await EntryModel.create({ content: req.body.content, category: theCat._id})
+            res.status(201).send(insertedEntry)
+        } else {
+            res.status(400).send({ error: 'Category not found' })
+        }
     }
     catch (err) {
         res.status(500).send({ error: err.message })
