@@ -1,7 +1,12 @@
 import express from 'express'
 import mongoose from 'mongoose'
 
-const categories = ['Food', 'Gaming', 'Coding', 'Other']
+const categories = [
+    { name: 'Food' },
+    { name: 'Gaming' },
+    { name: 'Coding' },
+    { name: 'Other' }
+]
 
 
 const entries = [
@@ -10,16 +15,22 @@ const entries = [
     { category: 'Gaming', content: 'Skyrim is for the Nords!'}
 ]
 
-mongoose.connect('mongodb+srv://flip242:<Password>@cluster0.bzqanvn.mongodb.net/journal?retryWrites=true&w=majority')
+mongoose.connect('mongodb+srv://flip242:<pw>@cluster0.bzqanvn.mongodb.net/journal?retryWrites=true&w=majority')
     .then(m => console.log(m.connection.readyState === 1 ? 'Mongoose Connected!' : 'Mongoose Failed to connect'))
     .catch(err => console.error(err))
 
-const entriesSchema = new mongoose.Schema({
+const entrySchema = new mongoose.Schema({
     category: {type: String, required: true},
     content: {type: String, required: true}
 })
 
-const EntryModel = mongoose.model('Entry', entriesSchema)
+const EntryModel = mongoose.model('Entry', entrySchema)
+
+const categorySchema = new mongoose.Schema({
+    name: { type: String, required: true }
+})
+
+const CategoryModel = mongoose.model('Category', categorySchema)
 
 const app = express()
 const port = 5501
@@ -28,16 +39,21 @@ app.use(express.json())
 
 app.get('/', (req, res) => res.send({ info: 'Journal API!'}))
 
-app.get('/categories', (req, res) => res.send(categories))
+app.get('/categories', async(req, res) => res.send(await CategoryModel.find()))
 
-app.get('/entries', (req, res) => res.send(entries))
+app.get('/entries', async (req, res) => res.send(await EntryModel.find()))
 
-app.get('/entries/:id', (req, res) => {
-    const entry = entries[req.params.id]
-    if (entry) {
+app.get('/entries/:id', async (req, res) => {
+    try {
+        const entry = await EntryModel.findById(req.params.id)
+        if (entry) {
         res.send(entry)
-    } else {
+        } else {
         res.status(404).send({ error: 'Entry not found' })
+        }
+    }
+    catch (err) {
+        res.status(500).send({ error: err.message })
     }
 })
 
@@ -49,7 +65,35 @@ app.post('/entries', async (req, res) => {
     catch (err) {
         res.status(500).send({ error: err.message })
     }
-    
+})
+
+app.put('/entries/:id', async (req, res) => {
+    try {
+        // new true is to show updated entry not to return prev entry
+        const entry = await EntryModel.findByIdAndUpdate(req.params.id, req.body, { new:true })
+        if (entry) {
+            res.send(entry)
+        } else {
+            res.status(404).send({ error: 'Entry not found' })
+        }
+    }
+    catch (err) {
+        res.status(500).send({ error: err.message })
+    }
+})
+
+app.delete('/entries/:id', async (req, res) => {
+    try {
+        const entry = await EntryModel.findByIdAndDelete(req.params.id)
+        if (entry) {
+            res.sendStatus(200)
+        } else {
+            res.status(404).send({ error: 'Entry not found' })
+        }
+    }
+    catch (err) {
+        res.status(500).send({ error: err.message })
+    }
 })
 
 app.listen(port)
