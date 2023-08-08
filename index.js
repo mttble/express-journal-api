@@ -2,8 +2,9 @@ import express from 'express'
 import { EntryModel, CategoryModel } from './db.js'
 import entryRoutes from './routes/entry_routes.js'
 
+
 const app = express()
-const port = 5501
+const port = 5503
 
 app.use(express.json())
 
