@@ -8,7 +8,7 @@ async function dbClose() {
 }
 
 mongoose.connect(process.env.ATLAS_DB_URL)
-    // .then(m => console.log(m.connection.readyState === 1 ? 'Mongoose Connected!' : 'Mongoose Failed to connect'))
+    .then(m => console.log(m.connection.readyState === 1 ? 'Mongoose Connected!' : 'Mongoose Failed to connect'))
     .catch(err => console.error(err))
 
 const entrySchema = new mongoose.Schema({
